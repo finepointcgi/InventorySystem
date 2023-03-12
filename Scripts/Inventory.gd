@@ -1,5 +1,10 @@
 extends Control
 
+enum State{
+	inventory, 
+	invesigation
+}
+
 var gridContainer : GridContainer
 var items : Array
 var capacity := 20
@@ -12,30 +17,43 @@ var overTrash : bool
 @export var AllowOverWeight : bool
 var IsOverWeight : bool
 var currentWeight := 0
+var currentState : State = State.inventory
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	gridContainer = $ScrollContainer/GridContainer
+	gridContainer = $InventoryMenu/ScrollContainer/GridContainer
 	populateButtons()
-	$WeightValue.text = str(currentWeight) + "/" + str(MaxWeight)
+	$InventoryMenu/WeightValue.text = str(currentWeight) + "/" + str(MaxWeight)
 	pass # Replace with function body.
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _input(event):
-	$MouseArea.position = get_tree().root.get_mouse_position()
-	if hoveredButton != null:
-		if CanSwapEmpty:
-			CheckForDrag()
-		else:
-			if hoveredButton.get("currentItem"):
-				if hoveredButton.currentItem != null:
-					CheckForDrag()
-				
-	if Input.is_action_just_released("Throw") && $MouseArea/InventoryButton.visible:
-		$MouseArea/InventoryButton.hide()
-		if overTrash:
-			DeleteButton(grabbedButton)
-		grabbedButton = null
+	if currentState == State.inventory:
+		$MouseArea.position = get_tree().root.get_mouse_position()
+		if hoveredButton != null:
+			if CanSwapEmpty:
+				CheckForDrag()
+			else:
+				if hoveredButton.get("currentItem"):
+					if hoveredButton.currentItem != null:
+						CheckForDrag()
+					
+		if Input.is_action_just_released("Throw") && $MouseArea/InventoryButton.visible:
+			$MouseArea/InventoryButton.hide()
+			if overTrash:
+				DeleteButton(grabbedButton)
+			grabbedButton = null
+	if Input.is_action_just_pressed("RightMouseDown"):
+		if currentState == State.inventory:
+			if hoveredButton != null:
+				$InvestigationObject.ShowObject(hoveredButton.currentItem)
+				$InventoryMenu.hide()
+				currentState = State.invesigation
+				pass
+		elif(currentState == State.invesigation):
+			$InventoryMenu.show()
+			$InvestigationObject.HideObject()
+			currentState = State.inventory
 
 func CheckForDrag():
 	if Input.is_action_just_pressed("Throw"):
@@ -65,7 +83,7 @@ func populateButtons():
 		var packedScene = ResourceLoader.load("res://addons/FPCGI/InventorySystem/Scenes/InventoryButton.tscn")
 		var itemButton : Button = packedScene.instantiate()
 		itemButton.connect("OnButtonClick", OnButtonClicked)
-		$ScrollContainer/GridContainer.add_child(itemButton)
+		$InventoryMenu/ScrollContainer/GridContainer.add_child(itemButton)
 
 func SwapButtons(button1, button2):
 	var button1Index = button1.get_index()
@@ -157,13 +175,13 @@ func reflowButtons():
 				currentWeight += i.currentItem.Weight * i.currentItem.Quantity
 			else:
 				UpdateButton(i.get_index())
-	$WeightValue.text = str(currentWeight) + "/" + str(MaxWeight)
+	$InventoryMenu/WeightValue.text = str(currentWeight) + "/" + str(MaxWeight)
 	if(AllowOverWeight):
 		IsOverWeight =  currentWeight > MaxWeight
 	if IsOverWeight:
-		$WeightValue.add_theme_color_override("font_color", Color(1,0,0))
+		$InventoryMenu/WeightValue.add_theme_color_override("font_color", Color(1,0,0))
 	else:
-		$WeightValue.add_theme_color_override("font_color", Color(1,1,1))
+		$InventoryMenu/WeightValue.add_theme_color_override("font_color", Color(1,1,1))
 		
 func UpdateButton(index : int, item : Item = null):
 	if gridContainer.get_child(index) == null:

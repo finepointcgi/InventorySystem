@@ -9,6 +9,7 @@ class_name Item
 @export var StackSize : int
 @export var IsStackable : bool
 @export var Weight : float
+@export var SubItem : Item
 
 func UseItem():
 	print("Used Item!")
