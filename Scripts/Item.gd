@@ -10,6 +10,9 @@ class_name Item
 @export var IsStackable : bool
 @export var Weight : float
 @export var SubItem : Item
+@export var SubItemFound : bool
+@export var DeleteItemAfterFound : bool
+@export var AfterFoundBaseItem : Item
 
 func UseItem():
 	print("Used Item!")
