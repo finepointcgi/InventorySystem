@@ -1,8 +1,8 @@
-[gd_scene load_steps=7 format=3 uid="uid://70nejgrvd3hi"]
+[gd_scene load_steps=7 format=3 uid="uid://dkv67e3txwrtt"]
 
 [ext_resource type="Script" path="res://addons/FPCGI/InventorySystem/Scripts/Inventory.gd" id="1_vcvjg"]
 [ext_resource type="PackedScene" path="res://addons/FPCGI/InventorySystem/Scenes/InventoryButton.tscn" id="2_vwd8l"]
-[ext_resource type="PackedScene" uid="uid://cp7i7w5vorr4g" path="res://investigation_object.tscn" id="3_vush4"]
+[ext_resource type="PackedScene" uid="uid://b3o3hbji7g5wn" path="res://addons/FPCGI/InventorySystem/Scenes/investigation_object.tscn" id="3_l05s6"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_g36f8"]
 radius = 3.0
@@ -42,9 +42,6 @@ offset_left = 0.0
 offset_top = 0.0
 offset_right = 40.0
 offset_bottom = 40.0
-
-[node name="InvestigationObject" parent="." instance=ExtResource("3_vush4")]
-visible = false
 
 [node name="InventoryMenu" type="Control" parent="."]
 anchors_preset = 0
@@ -141,6 +138,9 @@ offset_top = 431.0
 offset_right = 601.0
 offset_bottom = 463.0
 text = "10/10"
+
+[node name="InvestigationObject" parent="." instance=ExtResource("3_l05s6")]
+visible = false
 
 [connection signal="area_entered" from="MouseArea" to="." method="_on_mouse_area_area_entered"]
 [connection signal="area_exited" from="MouseArea" to="." method="_on_mouse_area_area_exited"]

@@ -194,11 +194,11 @@ func OnButtonClicked(index, currentItem : Item):
 		currentItem.UseItem()
 
 func _on_button_button_down():
-	Add(ResourceLoader.load("res://TestItem.tres"))
+	Add(ResourceLoader.load("res://ChestCombined.tres"))
 	pass # Replace with function body.
 
 func _on_button_2_button_down():
-	print(Remove(ResourceLoader.load("res://TestItem.tres")))
+	print(Remove(ResourceLoader.load("res://ChestCombined.tres")))
 	pass # Replace with function body.
 
 func _on_mouse_area_area_entered(area):
@@ -221,10 +221,10 @@ func _on_trash_area_area_exited(area):
 
 
 func _on_button_5_button_down():
-	Remove(ResourceLoader.load("res://TestItem2.tres"))
+	Remove(ResourceLoader.load("res://Key.tres"))
 	pass # Replace with function body.
 
 
 func _on_button_4_button_down():
-	Add(ResourceLoader.load("res://TestItem2.tres"))
+	Add(ResourceLoader.load("res://Key.tres"))
 	pass # Replace with function body.
