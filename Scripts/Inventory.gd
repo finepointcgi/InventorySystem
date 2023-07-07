@@ -1,5 +1,7 @@
 extends Control
 
+class_name Inventory
+
 enum State{
 	inventory, 
 	invesigation
@@ -18,12 +20,18 @@ var overTrash : bool
 var IsOverWeight : bool
 var currentWeight := 0
 var currentState : State = State.inventory
+
+@export var CraftingMenuScene : PackedScene
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	gridContainer = $InventoryMenu/ScrollContainer/GridContainer
 	populateButtons()
 	$InventoryMenu/WeightValue.text = str(currentWeight) + "/" + str(MaxWeight)
-	pass # Replace with function body.
+	if GameManager.Inventory == null:
+		GameManager.Inventory = self
+	else:
+		queue_free()
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -31,13 +39,19 @@ func _input(event):
 	if currentState == State.inventory:
 		$MouseArea.position = get_tree().root.get_mouse_position()
 		if hoveredButton != null:
-			if CanSwapEmpty:
-				CheckForDrag()
-			else:
-				if hoveredButton.get("currentItem"):
-					if hoveredButton.currentItem != null:
+			if hoveredButton is InventoryButton:
+				if hoveredButton.currentState != InventoryButton.InventoryButtonStates.Craftable:
+					if CanSwapEmpty:
 						CheckForDrag()
-					
+					else:
+						if hoveredButton.get("currentItem"):
+							if hoveredButton.currentItem != null:
+								CheckForDrag()
+				else:
+					$MouseArea/InventoryPopupMenu.show()
+					$MouseArea/InventoryPopupMenu.SetupInventoryPopupMenu(hoveredButton.currentItem)
+		else:
+			$MouseArea/InventoryPopupMenu.hide()
 		if Input.is_action_just_released("Throw") && $MouseArea/InventoryButton.visible:
 			$MouseArea/InventoryButton.hide()
 			if overTrash:
@@ -57,6 +71,8 @@ func _input(event):
 
 func CheckForDrag():
 	if Input.is_action_just_pressed("Throw"):
+		if(hoveredButton.currentState == InventoryButton.InventoryButtonStates.Craftable):
+			return
 		grabbedButton = hoveredButton
 		lastClickedMousePos = get_tree().root.get_mouse_position()
 	
@@ -65,12 +81,13 @@ func CheckForDrag():
 			if grabbedButton == null:
 				grabbedButton = hoveredButton
 			$MouseArea/InventoryButton.show()
-			$MouseArea/InventoryButton.UpdateItem(grabbedButton.currentItem, 0)
+			$MouseArea/InventoryButton.UpdateItem(grabbedButton.currentItem, 0, InventoryButton.InventoryButtonStates.Inventory)
 		if Input.is_action_just_released("Throw"):
 			if overTrash:
 				DeleteButton(grabbedButton)
 			else:
-				SwapButtons(grabbedButton, hoveredButton)
+				if(grabbedButton != null && hoveredButton != null):
+					SwapButtons(grabbedButton, hoveredButton)
 				$MouseArea/InventoryButton.hide()
 				pass
 
@@ -86,6 +103,7 @@ func populateButtons():
 		$InventoryMenu/ScrollContainer/GridContainer.add_child(itemButton)
 
 func SwapButtons(button1, button2):
+	
 	var button1Index = button1.get_index()
 	var button2Index = button2.get_index()
 	gridContainer.move_child(button1, button2Index)
@@ -110,7 +128,7 @@ func Add(item : Item):
 						UpdateButton(i.get_index(), i.currentItem)
 
 	if currentItem.Quantity > 0:
-		if currentItem.Quantity < currentItem.StackSize:
+		if currentItem.Quantity <= currentItem.StackSize:
 			for i in gridContainer.get_children():
 				if i.currentItem == null:
 					items.append(currentItem)
@@ -128,25 +146,29 @@ func Add(item : Item):
 					break
 	reflowButtons()
 
-func Remove(item : Item) -> bool:
-	if canAfford(item):
+func Remove(item : Item, quantity : int = 0) -> bool:
+	if quantity == 0:
+		quantity = item.Quantity
+	
+	if CanAfford(item):
 		var currentItem = item
 		for i in gridContainer.get_children():
 			if i.currentItem != null:
 				if i.currentItem.ID == currentItem.ID:
-					if i.currentItem.Quantity - currentItem.Quantity < 0:
-						currentItem.Quantity -= i.currentItem.Quantity
+					if i.currentItem.Quantity - quantity < 0:
+						quantity -= i.currentItem.Quantity
 						i.currentItem.Quantity = 0
 						UpdateButton(i.get_index(), i.currentItem)
 					else:
-						i.currentItem.Quantity -= currentItem.Quantity
-						currentItem.Quantity = 0
+						i.currentItem.Quantity -= quantity
+						quantity = 0
 						UpdateButton(i.get_index(), i.currentItem)
 				
-			if currentItem.Quantity <= 0:
+			if quantity <= 0:
 				break
 		var tempItems = items.duplicate()
 		var offset = 0
+		# removes buttons that have 0 quantity
 		for i in tempItems.size():
 			if items[i - offset].Quantity == 0:
 				items.remove_at(i - offset)
@@ -156,13 +178,15 @@ func Remove(item : Item) -> bool:
 		return true
 	return false
 
-func canAfford(item : Item) -> bool:
+func CanAfford(item : Item, quantity : int = 0) -> bool:
 	var count : int
+	if quantity == 0:
+		quantity = item.Quantity
 	for i in gridContainer.get_children():
 		if i.currentItem != null:
 			if i.currentItem.ID == item.ID:
-				count += item.Quantity
-	return count >= item.Quantity
+				count += quantity
+	return count >= quantity
 
 func reflowButtons():
 	currentWeight = 0
@@ -187,18 +211,18 @@ func UpdateButton(index : int, item : Item = null):
 	if gridContainer.get_child(index) == null:
 		print("Error: Child At Index " + str(index) + " Is null")
 		return
-	gridContainer.get_child(index).UpdateItem(item, index)
+	gridContainer.get_child(index).UpdateItem(item, index, InventoryButton.InventoryButtonStates.Inventory)
 
-func OnButtonClicked(index, currentItem : Item):
+func OnButtonClicked(index, currentItem : Item, state):
 	if currentItem != null:
 		currentItem.UseItem()
 
 func _on_button_button_down():
-	Add(ResourceLoader.load("res://ChestCombined.tres"))
+	Add(ResourceLoader.load("res://Coal.tres"))
 	pass # Replace with function body.
 
 func _on_button_2_button_down():
-	print(Remove(ResourceLoader.load("res://ChestCombined.tres")))
+	print(Remove(ResourceLoader.load("res://Coal.tres")))
 	pass # Replace with function body.
 
 func _on_mouse_area_area_entered(area):
@@ -221,10 +245,16 @@ func _on_trash_area_area_exited(area):
 
 
 func _on_button_5_button_down():
-	Remove(ResourceLoader.load("res://Key.tres"))
+	Remove(ResourceLoader.load("res://Iron.tres"))
 	pass # Replace with function body.
 
 
 func _on_button_4_button_down():
-	Add(ResourceLoader.load("res://Key.tres"))
+	Add(ResourceLoader.load("res://Iron.tres"))
+	pass # Replace with function body.
+
+
+func _on_open_craft_menu_button_down():
+	var menu = CraftingMenuScene.instantiate()
+	add_child(menu)
 	pass # Replace with function body.

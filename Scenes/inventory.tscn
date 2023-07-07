@@ -1,8 +1,11 @@
-[gd_scene load_steps=7 format=3 uid="uid://dkv67e3txwrtt"]
+[gd_scene load_steps=10 format=3 uid="uid://dkv67e3txwrtt"]
 
 [ext_resource type="Script" path="res://addons/FPCGI/InventorySystem/Scripts/Inventory.gd" id="1_vcvjg"]
-[ext_resource type="PackedScene" path="res://addons/FPCGI/InventorySystem/Scenes/InventoryButton.tscn" id="2_vwd8l"]
+[ext_resource type="PackedScene" uid="uid://g7d4rdbs3qgr" path="res://crafting_menu.tscn" id="2_eqje4"]
+[ext_resource type="PackedScene" uid="uid://pt8a8h822pfa" path="res://addons/FPCGI/InventorySystem/Scenes/InventoryButton.tscn" id="2_vwd8l"]
 [ext_resource type="PackedScene" uid="uid://b3o3hbji7g5wn" path="res://addons/FPCGI/InventorySystem/Scenes/investigation_object.tscn" id="3_l05s6"]
+[ext_resource type="Script" path="res://addons/FPCGI/InventorySystem/Scenes/InventoryPopupMenu.gd" id="5_gjh8x"]
+[ext_resource type="PackedScene" uid="uid://fipe2en3gdjg" path="res://ComponentListElement.tscn" id="6_ko4rk"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_g36f8"]
 radius = 3.0
@@ -29,6 +32,7 @@ script = ExtResource("1_vcvjg")
 CanSwapEmpty = true
 MaxWeight = 20
 AllowOverWeight = true
+CraftingMenuScene = ExtResource("2_eqje4")
 
 [node name="MouseArea" type="Area2D" parent="."]
 position = Vector2(-5, -6)
@@ -42,6 +46,73 @@ offset_left = 0.0
 offset_top = 0.0
 offset_right = 40.0
 offset_bottom = 40.0
+
+[node name="InventoryPopupMenu" type="Control" parent="MouseArea"]
+visible = false
+z_index = 1
+layout_mode = 3
+anchors_preset = 0
+offset_left = 5.0
+offset_top = 6.0
+offset_right = 155.0
+offset_bottom = 161.0
+script = ExtResource("5_gjh8x")
+componentListElementScene = ExtResource("6_ko4rk")
+
+[node name="Panel" type="Panel" parent="MouseArea/InventoryPopupMenu"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = 35.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HeaderTitle" type="Label" parent="MouseArea/InventoryPopupMenu"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 3.0
+offset_right = 146.0
+offset_bottom = 29.0
+text = "name text"
+
+[node name="WeightValue" type="Label" parent="MouseArea/InventoryPopupMenu"]
+layout_mode = 0
+offset_left = 67.0
+offset_top = 32.0
+offset_right = 146.0
+offset_bottom = 58.0
+text = "10"
+horizontal_alignment = 2
+
+[node name="WeightTitle" type="Label" parent="MouseArea/InventoryPopupMenu"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 33.0
+offset_right = 146.0
+offset_bottom = 59.0
+text = "Weight"
+
+[node name="ComponentsTitle" type="Label" parent="MouseArea/InventoryPopupMenu"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 60.0
+offset_right = 146.0
+offset_bottom = 86.0
+text = "Components:"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MouseArea/InventoryPopupMenu"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 6.0
+offset_top = -70.0
+offset_right = -4.0
+offset_bottom = 14.0
+grow_horizontal = 2
+grow_vertical = 0
 
 [node name="InventoryMenu" type="Control" parent="."]
 anchors_preset = 0
@@ -109,6 +180,14 @@ offset_right = 616.0
 offset_bottom = 637.0
 text = "Remove Item 2"
 
+[node name="OpenCraftMenu" type="Button" parent="InventoryMenu"]
+layout_mode = 0
+offset_left = 314.0
+offset_top = 582.0
+offset_right = 458.0
+offset_bottom = 637.0
+text = "Open Craft Menu"
+
 [node name="Button3" type="Button" parent="InventoryMenu"]
 layout_mode = 0
 offset_left = 630.0
@@ -148,5 +227,6 @@ visible = false
 [connection signal="button_down" from="InventoryMenu/Button2" to="." method="_on_button_2_button_down"]
 [connection signal="button_down" from="InventoryMenu/Button4" to="." method="_on_button_4_button_down"]
 [connection signal="button_down" from="InventoryMenu/Button5" to="." method="_on_button_5_button_down"]
+[connection signal="button_down" from="InventoryMenu/OpenCraftMenu" to="." method="_on_open_craft_menu_button_down"]
 [connection signal="area_entered" from="InventoryMenu/Button3/TrashArea" to="." method="_on_trash_area_area_entered"]
 [connection signal="area_exited" from="InventoryMenu/Button3/TrashArea" to="." method="_on_trash_area_area_exited"]
